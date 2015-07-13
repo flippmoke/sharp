@@ -12,6 +12,8 @@ var imagemagickNative = require('imagemagick-native');
 var gm = require('gm');
 var sharp = require('../../index');
 
+var mapnik = require('mapnik');
+
 var fixtures = require('../fixtures');
 
 var width = 720;
@@ -63,6 +65,60 @@ async.series({
             deferred.resolve();
           }
         });
+      }
+    }).add('mapnik-buffer-file', {
+      defer: true,
+      fn: function(deferred) {
+        mapnik.Image.fromBytes(inputJpgBuffer, function (err, image) {
+            if (err) {
+              throw err;
+            } else {
+              image.premultiplied = true;
+              image.resize(width, height).save(fixtures.outputJpg, 'jpeg:quality=80');
+              deferred.resolve();
+            }
+          });
+      }
+    }).add('mapnik-buffer-buffer', {
+      defer: true,
+      fn: function(deferred) {
+        mapnik.Image.fromBytes(inputJpgBuffer, function (err, image) {
+            if (err) {
+              throw err;
+            } else {
+              image.premultiplied = true;
+              var buffer = image.resize(width, height).encodeSync('jpeg:quality=80');
+              assert.notStrictEqual(null, buffer);
+              deferred.resolve();
+            }
+          });
+      }
+    }).add('mapnik-file-file', {
+      defer: true,
+      fn: function(deferred) {
+        mapnik.Image.open(fixtures.inputJpg, function (err, image) {
+            if (err) {
+              throw err;
+            } else {
+              image.premultiplied = true;
+              image.resize(width, height).save(fixtures.outputJpg, 'jpeg:quality=80');
+              deferred.resolve();
+            }
+          });
+      }
+    }).add('mapnik-file-buffer', {
+      defer: true,
+      fn: function(deferred) {
+        mapnik.Image.open(fixtures.inputJpg, function (err, image) {
+            if (err) {
+              throw err;
+            } else {
+              image.premultiplied = true;
+              var buffer = image.resize(width, height).encodeSync('jpeg:quality=80');
+              assert.notStrictEqual(null, buffer);
+              deferred.resolve();
+            }
+          });
       }
     }).add('gm-buffer-file', {
       defer: true,
